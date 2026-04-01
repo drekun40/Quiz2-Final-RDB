@@ -1,9 +1,11 @@
 from sqlmodel import SQLModel, Field, create_engine, Session, Relationship
 from typing import Optional, List
 from datetime import date
+from pathlib import Path
 
-# Database URL
-DATABASE_URL = "sqlite:///./erie_otters.db"
+# Database URL - use absolute path to ensure consistency
+DB_FILE = Path(__file__).parent / "erie_otters.db"
+DATABASE_URL = f"sqlite:///{DB_FILE}"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
 
