@@ -67,12 +67,13 @@ class PlayerStatsResponse(BaseModel):
 # Team Endpoints
 # ============================================================================
 
-@app.get("/teams", response_model=List[TeamResponse])
+@app.get("/teams")
 def get_teams():
     """Get all teams"""
     with Session(engine) as session:
         teams = session.exec(select(Team)).all()
-        return teams
+        return [{"team_id": t.team_id, "name": t.name, "city": t.city, 
+                "founded_year": t.founded_year, "league": t.league} for t in teams]
 
 
 @app.get("/teams/{team_id}", response_model=TeamResponse)
@@ -99,7 +100,7 @@ def create_team(team: Team):
 # Player Endpoints
 # ============================================================================
 
-@app.get("/players", response_model=List[PlayerResponse])
+@app.get("/players")
 def get_players(position: Optional[str] = None):
     """Get all players, optionally filtered by position"""
     with Session(engine) as session:
@@ -107,7 +108,8 @@ def get_players(position: Optional[str] = None):
         if position:
             query = query.where(Player.position == position)
         players = session.exec(query).all()
-        return players
+        return [{"player_id": p.player_id, "first_name": p.first_name, "last_name": p.last_name, 
+                "birth_year": p.birth_year, "position": p.position, "draft_year": p.draft_year} for p in players]
 
 
 @app.get("/players/{player_id}", response_model=PlayerResponse)
@@ -134,7 +136,7 @@ def create_player(player: Player):
 # Game Endpoints
 # ============================================================================
 
-@app.get("/games", response_model=List[GameResponse])
+@app.get("/games")
 def get_games(season: Optional[int] = None):
     """Get all games, optionally filtered by season"""
     with Session(engine) as session:
@@ -142,7 +144,9 @@ def get_games(season: Optional[int] = None):
         if season:
             query = query.where(Game.season == season)
         games = session.exec(query).all()
-        return games
+        return [{"game_id": g.game_id, "season": g.season, "game_date": str(g.game_date),
+                "home_team_id": g.home_team_id, "away_team_id": g.away_team_id,
+                "home_score": g.home_score, "away_score": g.away_score} for g in games]
 
 
 @app.get("/games/{game_id}", response_model=GameResponse)
@@ -159,7 +163,7 @@ def get_game(game_id: int):
 # Player Stats Endpoints
 # ============================================================================
 
-@app.get("/player-stats", response_model=List[PlayerStatsResponse])
+@app.get("/player-stats")
 def get_player_stats(player_id: Optional[int] = None, season: Optional[int] = None):
     """Get player stats, optionally filtered by player_id or season"""
     with Session(engine) as session:
@@ -169,7 +173,9 @@ def get_player_stats(player_id: Optional[int] = None, season: Optional[int] = No
         if season:
             query = query.where(PlayerStats.season == season)
         stats = session.exec(query).all()
-        return stats
+        return [{"stat_id": s.stat_id, "player_id": s.player_id, "season": s.season,
+                "games_played": s.games_played, "goals": s.goals, "assists": s.assists,
+                "points": s.points, "plus_minus": s.plus_minus, "penalty_minutes": s.penalty_minutes} for s in stats]
 
 
 # ============================================================================
