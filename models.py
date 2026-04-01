@@ -18,7 +18,6 @@ class Team(SQLModel, table=True):
     city: str
     founded_year: int
     league: str = "OHL"
-    games: List["Game"] = Relationship(back_populates="home_team_obj")
     team_stats: List["TeamStats"] = Relationship(back_populates="team")
 
 
@@ -45,8 +44,6 @@ class Game(SQLModel, table=True):
     away_score: int
     venue: Optional[str] = None
     attendance: Optional[int] = None
-    home_team_obj: Team = Relationship(back_populates="games",
-                                        sa_relationship_kwargs={"foreign_keys": "Game.home_team_id"})
 
 
 class PlayerStats(SQLModel, table=True):
