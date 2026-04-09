@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Erie Otters Database Explorer{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+    <style>
+        /* Inline script for learning note toggle functionality */
+    </style>
+</head>
+<body>
+    <!-- HEADER & NAVIGATION -->
+    <header>
+        <h1>🦦 Erie Otters Database</h1>
+        <p>Explore player statistics and team data</p>
+        <nav>
+            <a href="/" class="{% if 'home' in request.url %}active{% endif %}">Home</a>
+            <a href="/teams" class="{% if 'teams' in request.url %}active{% endif %}">Teams</a>
+            <a href="/players" class="{% if 'players' in request.url %}active{% endif %}">Players</a>
+            <a href="/stats" class="{% if 'stats' in request.url %}active{% endif %}">Statistics</a>
+            <a href="/docs" target="_blank" class="{% if 'docs' in request.url %}active{% endif %}">API Docs</a>
+        </nav>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>&copy; 2026 Erie Otters Hockey Analytics | Local Development</p>
+        <p><small>Data Explorer • 520 Player Records • 26 Seasons (2000-2026)</small></p>
+    </footer>
+
+    <!-- SCRIPT FOR LEARNING NOTE INTERACTIVITY -->
+    <script>
+        // Enable expand/collapse functionality for learning notes
+        document.addEventListener('DOMContentLoaded', function() {
+            const learningNotes = document.querySelectorAll('.learning-note');
+            
+            learningNotes.forEach(note => {
+                const header = note.querySelector('h3');
+                if (header) {
+                    header.addEventListener('click', function() {
+                        note.classList.toggle('collapsed');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

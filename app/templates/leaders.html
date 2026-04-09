@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Season Leaders - Erie Otters Stats{% endblock %}
+
+{% block content %}
+<section class="leaders-page">
+    <h1>🏆 Season {{ season }} Leaderboards</h1>
+
+    <!-- Season Selector -->
+    {% if available_seasons %}
+    <div class="filter-section">
+        <label for="season-select">Select Season:</label>
+        <select id="season-select" onchange="window.location.href='/leaders?season=' + this.value">
+            {% for s in available_seasons %}
+            <option value="{{ s }}" {% if s == season %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+
+    <!-- Top Scorers -->
+    <section class="leaders-section">
+        <h2>⚽ Top Goal Scorers</h2>
+        {% if scorers %}
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Position</th>
+                    <th>Goals</th>
+                    <th>Assists</th>
+                    <th>Points</th>
+                    <th>GP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scorer in scorers %}
+                <tr>
+                    <td class="rank">{{ loop.index }}</td>
+                    <td class="player-name">{{ scorer.name }}</td>
+                    <td class="position">{{ scorer.position }}</td>
+                    <td class="stat-cell"><strong>{{ scorer.goals }}</strong></td>
+                    <td class="stat-cell">{{ scorer.assists }}</td>
+                    <td class="stat-cell">{{ scorer.points }}</td>
+                    <td class="stat-cell">{{ scorer.games_played }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="no-data">No data available for this season</p>
+        {% endif %}
+
+        <!-- SQL Query Display - Always Visible -->
+        {% if scorers_query %}
+        <div class="query-section">
+            <p><strong>📍 SQL Query:</strong></p>
+            <pre><code>{{ scorers_query }}</code></pre>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Top Point Getters -->
+    <section class="leaders-section">
+        <h2>🎯 Top Point Getters (Goals + Assists)</h2>
+        {% if points %}
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Position</th>
+                    <th>Points</th>
+                    <th>Goals</th>
+                    <th>Assists</th>
+                    <th>GP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in points %}
+                <tr>
+                    <td class="rank">{{ loop.index }}</td>
+                    <td class="player-name">{{ player.name }}</td>
+                    <td class="position">{{ player.position }}</td>
+                    <td class="stat-cell"><strong>{{ player.points }}</strong></td>
+                    <td class="stat-cell">{{ player.goals }}</td>
+                    <td class="stat-cell">{{ player.assists }}</td>
+                    <td class="stat-cell">{{ player.games_played }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="no-data">No data available</p>
+        {% endif %}
+
+        <!-- SQL Query Display - Always Visible -->
+        {% if points_query %}
+        <div class="query-section">
+            <p><strong>📍 SQL Query:</strong></p>
+            <pre><code>{{ points_query }}</code></pre>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Most Penalized -->
+    <section class="leaders-section">
+        <h2>⚠️ Most Penalized Players</h2>
+        {% if penalized %}
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Position</th>
+                    <th>Penalty Minutes</th>
+                    <th>Goals</th>
+                    <th>Assists</th>
+                    <th>GP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in penalized %}
+                <tr>
+                    <td class="rank">{{ loop.index }}</td>
+                    <td class="player-name">{{ player.name }}</td>
+                    <td class="position">{{ player.position }}</td>
+                    <td class="stat-cell"><strong>{{ player.penalty_minutes }}</strong></td>
+                    <td class="stat-cell">{{ player.goals }}</td>
+                    <td class="stat-cell">{{ player.assists }}</td>
+                    <td class="stat-cell">{{ player.games_played }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="no-data">No data available</p>
+        {% endif %}
+
+        <!-- SQL Query Display - Always Visible -->
+        {% if penalized_query %}
+        <div class="query-section">
+            <p><strong>📍 SQL Query:</strong></p>
+            <pre><code>{{ penalized_query }}</code></pre>
+        </div>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}

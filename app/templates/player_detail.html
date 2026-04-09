@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+
+{% block title %}{{ player_name }} - Erie Otters Career Stats{% endblock %}
+
+{% block content %}
+<div class="player-detail-page">
+    <a href="/players?season={{ current_season }}" class="back-link">← Back to Players Directory</a>
+
+    <!-- Player Header Card -->
+    <div class="player-header-card">
+        <div class="player-info-section">
+            <h1>{{ player_name }}</h1>
+            {% if player %}
+            <div class="player-badges">
+                <span class="badge badge-position">{{ player.position }}</span>
+                {% if player.jersey_number %}
+                <span class="badge badge-number">#{{ player.jersey_number }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    {% if career_data and career_data.analysis %}
+    {% set analysis = career_data.analysis %}
+    <div class="stats-cards-grid">
+        <div class="stat-card">
+            <div class="stat-card-icon">⚡</div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Career Points</span>
+                <span class="stat-card-value">{{ analysis.career_totals.points }}</span>
+                <span class="stat-card-detail">{{ analysis.seasons_count }} seasons</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon">⚽</div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Career Goals</span>
+                <span class="stat-card-value">{{ analysis.career_totals.goals }}</span>
+                <span class="stat-card-detail">{{ analysis.avg_goals_per_season }} per season</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon">🎯</div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Career Assists</span>
+                <span class="stat-card-value">{{ analysis.career_totals.assists }}</span>
+                <span class="stat-card-detail">{{ analysis.avg_assists_per_season }} per season</span>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon">📊</div>
+            <div class="stat-card-content">
+                <span class="stat-card-label">Career PPG</span>
+                <span class="stat-card-value">{{ analysis.career_ppg }}</span>
+                <span class="stat-card-detail">{{ analysis.career_totals.games_played }} games</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+        <div class="chart-container">
+            <h3>Points per Game Progression</h3>
+            <canvas id="ppgChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3>Season Goals vs Assists</h3>
+            <canvas id="gaChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3>Season Points Breakdown</h3>
+            <canvas id="pointsChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3>Games Played by Season</h3>
+            <canvas id="gamesChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Analysis Section -->
+    {% if analysis_html %}
+    <div class="analysis-section">
+        {{ analysis_html | safe }}
+    </div>
+    {% endif %}
+
+    <!-- Season-by-Season Table -->
+    {% if seasons %}
+    <div class="seasons-table-section">
+        <h2>📊 Season-by-Season Breakdown</h2>
+        <div class="table-container">
+            <table class="seasons-table">
+                <thead>
+                    <tr>
+                        <th>Season</th>
+                        <th>GP</th>
+                        <th>Goals</th>
+                        <th>Assists</th>
+                        <th>Points</th>
+                        <th>PPG</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for season in seasons %}
+                    <tr>
+                        <td class="season-year">{{ season.season }}-{{ season.season+1 }}</td>
+                        <td>{{ season.games_played }}</td>
+                        <td>{{ season.goals }}</td>
+                        <td>{{ season.assists }}</td>
+                        <td><strong>{{ season.points }}</strong></td>
+                        <td class="ppg-cell">{{ season.ppg }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Chart data from server
+    const chartData = {{ chart_data_json | safe }};
+    
+    // Common chart options
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: true,
+                labels: {
+                    font: { size: 12, family: 'sans-serif' },
+                    color: '#333'
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: '#e5e7eb' },
+                ticks: { font: { size: 11 } }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { font: { size: 11 } }
+            }
+        }
+    };
+    
+    // PPG Chart
+    new Chart(document.getElementById('ppgChart'), {
+        type: 'line',
+        data: {
+            labels: chartData.seasons,
+            datasets: [{
+                label: 'Points Per Game',
+                data: chartData.ppg,
+                borderColor: '#00205B',
+                backgroundColor: 'rgba(0, 32, 91, 0.05)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2,
+                pointBackgroundColor: '#FFD700',
+                pointBorderColor: '#00205B',
+                pointRadius: 5
+            }]
+        },
+        options: commonOptions
+    });
+    
+    // Goals vs Assists Chart
+    new Chart(document.getElementById('gaChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.seasons,
+            datasets: [
+                {
+                    label: 'Goals',
+                    data: chartData.goals,
+                    backgroundColor: '#00205B',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Assists',
+                    data: chartData.assists,
+                    backgroundColor: '#FFD700',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                legend: { display: true }
+            }
+        }
+    });
+    
+    // Points Chart
+    new Chart(document.getElementById('pointsChart'), {
+        type: 'line',
+        data: {
+            labels: chartData.seasons,
+            datasets: [{
+                label: 'Total Points',
+                data: chartData.points,
+                borderColor: '#FFD700',
+                backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2,
+                pointBackgroundColor: '#00205B',
+                pointBorderColor: '#FFD700',
+                pointRadius: 5
+            }]
+        },
+        options: commonOptions
+    });
+    
+    // Games Chart
+    new Chart(document.getElementById('gamesChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.seasons,
+            datasets: [{
+                label: 'Games Played',
+                data: chartData.games,
+                backgroundColor: '#00205B',
+                borderRadius: 4
+            }]
+        },
+        options: commonOptions
+    });
+});
+</script>
+
+<style>
+.player-detail-page {
+    animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: #00205B;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.back-link:hover {
+    transform: translateX(-4px);
+    color: #FFD700;
+}
+
+.player-header-card {
+    background: linear-gradient(135deg, #00205B 0%, #1a3a6b 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.player-info-section h1 {
+    color: #FFD700;
+    margin-bottom: 0.5rem;
+}
+
+.player-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    background: rgba(255, 215, 0, 0.2);
+    border: 1px solid #FFD700;
+    color: white;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.stats-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border: 2px solid #00205B;
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0,32,91,0.15);
+}
+
+.stat-card-icon {
+    font-size: 1.8rem;
+    min-width: 40px;
+    text-align: center;
+}
+
+.stat-card-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-card-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-card-value {
+    font-size: 1.8rem;
+    color: #00205B;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-card-detail {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin-top: 0.25rem;
+}
+
+.charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.chart-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.chart-container h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #00205B;
+}
+
+.analysis-section {
+    background: #fafbfc;
+    padding: 2rem;
+    border-radius: 10px;
+    border-left: 4px solid #FFD700;
+    margin: 2rem 0;
+}
+
+.analysis-text {
+    line-height: 1.8;
+}
+
+.analysis-text p {
+    margin-bottom: 1rem;
+}
+
+.analysis-text strong {
+    color: #00205B;
+}
+
+.seasons-table-section {
+    margin-top: 2rem;
+}
+
+.seasons-table-section h2 {
+    margin-bottom: 1rem;
+}
+
+.seasons-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.seasons-table thead {
+    background: #00205B;
+    color: white;
+}
+
+.seasons-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.seasons-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.seasons-table tbody tr:hover {
+    background: #f1f3f5;
+}
+
+.season-year {
+    font-weight: 600;
+    color: #00205B;
+}
+
+.ppg-cell {
+    color: #FFD700;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

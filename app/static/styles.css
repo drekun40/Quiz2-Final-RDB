@@ -1,0 +1,1134 @@
+/* ============================================================================
+   🏒 ERIE OTTERS STATS DASHBOARD
+   Official Colors: Navy #00205B, Gold #FFD700
+   ============================================================================ */
+
+:root {
+    --navy: #00205B;
+    --gold: #FFD700;
+    --light-navy: #1a3a6b;
+    --dark-navy: #000f2e;
+    --white: #ffffff;
+    --light-gray: #f1f3f5;
+    --off-white: #fafbfc;
+    --dark-text: #1f2937;
+    --light-text: #6b7280;
+    --border-color: #e5e7eb;
+    --success: #10b981;
+    --error: #ef4444;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================================
+   RESET & BASE STYLES
+   ============================================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: var(--light-gray);
+    color: var(--dark-text);
+    line-height: 1.6;
+}
+
+/* ============================================================================
+   TYPOGRAPHY
+   ============================================================================ */
+
+h1 {
+    color: var(--navy);
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+h2 {
+    color: var(--navy);
+    font-size: 2rem;
+    margin: 1.5rem 0 1rem 0;
+    font-weight: 700;
+}
+
+h3 {
+    color: var(--navy);
+    font-size: 1.5rem;
+    margin: 1rem 0 0.5rem 0;
+}
+
+h4 {
+    color: var(--navy);
+    font-size: 1.2rem;
+    margin: 0.8rem 0 0.4rem 0;
+}
+
+p {
+    color: var(--dark-text);
+    margin-bottom: 1rem;
+}
+
+a {
+    color: var(--navy);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--gold);
+    text-decoration: underline;
+}
+
+code {
+    background-color: rgba(11, 31, 65, 0.05);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+pre {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+}
+
+pre code {
+    background-color: transparent;
+    padding: 0;
+    font-size: 0.85em;
+    line-height: 1.5;
+}
+
+/* ============================================================================
+   LAYOUT CONTAINERS
+   ============================================================================ */
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.main-content {
+    min-height: calc(100vh - 200px);
+    padding: 40px 0;
+}
+
+/* ============================================================================
+   NAVIGATION BAR
+   ============================================================================ */
+
+.navbar {
+    background-color: var(--navy);
+    color: var(--white);
+    padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(11, 31, 65, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.logo {
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.navbar-menu {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.nav-link {
+    color: var(--white);
+    font-weight: 500;
+    transition: var(--transition);
+    border-bottom: 2px solid transparent;
+    padding-bottom: 0.5rem;
+}
+
+.nav-link:hover {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    text-decoration: none;
+}
+
+.nav-link.admin {
+    background-color: rgba(239, 68, 68, 0.2);
+    padding: 0.3rem 0.8rem;
+    border-radius: 3px;
+}
+
+/* ============================================================================
+   HERO SECTION
+   ============================================================================ */
+
+.hero {
+    background: linear-gradient(135deg, #00205B 0%, #003d8f 100%);
+    color: var(--white);
+    padding: 3rem 2rem;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    border-top: 5px solid var(--gold);
+    border-left: 5px solid var(--gold);
+    position: relative;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 4rem;
+    opacity: 0.1;
+}
+
+.hero h1 {
+    color: var(--gold);
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.02em;
+}
+
+.hero-subtitle {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 1.2rem;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.btn {
+    display: inline-block;
+    padding: 0.7rem 1.2rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: var(--gold);
+    color: var(--navy);
+    border: 2px solid var(--gold);
+    font-weight: 700;
+}
+
+.btn-primary:hover {
+    background-color: #ffe43a;
+    border-color: #ffe43a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.btn-secondary {
+    background-color: var(--navy);
+    color: var(--white);
+    border: 2px solid var(--navy);
+}
+
+.btn-secondary:hover {
+    background-color: #003d8f;
+    border-color: #003d8f;
+    transform: translateY(-2px);
+}
+
+.btn-small {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+}
+
+/* ============================================================================
+   CARDS & GRID LAYOUTS
+   ============================================================================ */
+
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.feature-card {
+    background-color: var(--white);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: var(--transition);
+    border-top: 5px solid var(--gold);
+    border-left: 3px solid var(--navy);
+}
+
+.feature-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+}
+
+.card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.feature-card h2 {
+    margin-top: 0;
+    color: var(--navy);
+}
+
+.feature-card p {
+    color: var(--light-text);
+    margin-bottom: 1.5rem;
+}
+
+/* Statistics Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.stat-card {
+    background-color: var(--white);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-left: 5px solid var(--gold);
+    border-top: 3px solid var(--navy);
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 32, 91, 0.15);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    color: var(--navy);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.stat-label {
+    color: var(--light-text);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ============================================================================
+   TABLES
+   ============================================================================ */
+
+.table-container {
+    background-color: var(--white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin: 1.5rem 0;
+    overflow-x: auto;
+}
+
+.stats-table,
+.players-table,
+.projections-table,
+.refresh-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.stats-table th,
+.players-table th,
+.projections-table th,
+.refresh-table th {
+    background-color: var(--navy);
+    color: var(--white);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    border: none;
+}
+
+.stats-table td,
+.players-table td,
+.projections-table td,
+.refresh-table td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.stats-table tbody tr:hover,
+.players-table tbody tr:hover,
+.projections-table tbody tr:hover {
+    background-color: var(--light-gray);
+}
+
+.sub-header {
+    background-color: #1a3a5c;
+    font-size: 0.85rem;
+}
+
+.stat-group {
+    text-align: center;
+}
+
+.stat-center {
+    text-align: center;
+}
+
+.stat-cell {
+    text-align: center;
+}
+
+.stat-projected {
+    background-color: rgba(202, 166, 75, 0.1);
+    font-weight: 600;
+}
+
+.rank {
+    text-align: center;
+    font-weight: 700;
+    color: var(--gold);
+    width: 50px;
+}
+
+.player-name {
+    font-weight: 600;
+    color: var(--navy);
+}
+
+.position {
+    text-align: center;
+}
+
+.pos-badge {
+    background-color: var(--gold);
+    color: var(--navy);
+    padding: 0.2rem 0.6rem;
+    border-radius: 3px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.jersey {
+    text-align: center;
+    font-weight: 600;
+}
+
+.team {
+    font-size: 0.9rem;
+    color: var(--light-text);
+}
+
+.action {
+    text-align: center;
+}
+
+.result-count {
+    text-align: right;
+    font-size: 0.9rem;
+    color: var(--light-text);
+    margin: 0.5rem 0;
+}
+
+/* ============================================================================
+   BADGES
+   ============================================================================ */
+
+.badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.badge-position {
+    background-color: var(--gold);
+    color: var(--navy);
+}
+
+.badge-number {
+    background-color: rgba(11, 31, 65, 0.1);
+    color: var(--navy);
+}
+
+.badge-team {
+    background-color: rgba(202, 166, 75, 0.2);
+    color: var(--navy);
+}
+
+.badge-success {
+    background-color: var(--success);
+    color: var(--white);
+}
+
+.badge-error {
+    background-color: var(--error);
+    color: var(--white);
+}
+
+/* ============================================================================
+   FORMS & INPUTS
+   ============================================================================ */
+
+.filter-section {
+    background-color: var(--white);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.search-box {
+    flex: 1;
+    display: flex;
+    gap: 0.5rem;
+    min-width: 250px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(11, 31, 65, 0.1);
+}
+
+.filter-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-box label {
+    font-weight: 600;
+    color: var(--dark-text);
+}
+
+.filter-box select,
+#season-select,
+#position-filter,
+#season-filter {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--white);
+    color: var(--dark-text);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.filter-box select:focus,
+#season-select:focus,
+#position-filter:focus,
+#season-filter:focus {
+    outline: none;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(11, 31, 65, 0.1);
+}
+
+/* ============================================================================
+   LEARNING NOTES
+   ============================================================================ */
+
+.learning-note {
+    background-color: #e3f2fd;
+    border-left: 4px solid var(--orange);
+    border-radius: 5px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    cursor: pointer;
+}
+
+.learning-note summary {
+    font-weight: 600;
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.learning-note summary:hover {
+    color: var(--orange);
+}
+
+.learning-content {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(11, 31, 65, 0.2);
+}
+
+.learning-content p {
+    font-size: 0.95rem;
+    color: var(--dark-text);
+}
+
+.learning-content ul {
+    margin-left: 1.5rem;
+    color: var(--dark-text);
+}
+
+.learning-content li {
+    margin-bottom: 0.5rem;
+}
+
+/* ============================================================================
+   QUERY SECTION (Always Visible SQL)
+   ============================================================================ */
+
+.query-section {
+    background-color: #e3f2fd;
+    border-left: 4px solid var(--orange);
+    border-radius: 5px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+}
+
+.query-section p {
+    font-size: 0.95rem;
+    color: var(--dark-text);
+    margin-bottom: 0.5rem;
+}
+
+.query-section pre {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin-top: 0.5rem;
+}
+
+.query-section code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: #d73a49;
+}
+
+/* ============================================================================
+   SECTIONS & INFO BOXES
+   ============================================================================ */
+
+.info-section {
+    margin: 2rem 0;
+}
+
+.info-boxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.info-box {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--gold);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.info-box h3 {
+    margin-top: 0;
+    color: var(--navy);
+}
+
+.info-box p {
+    color: var(--light-text);
+    margin-bottom: 0.5rem;
+}
+
+.info-box code {
+    background-color: rgba(11, 31, 65, 0.05);
+    padding: 0.3rem 0.6rem;
+    border-radius: 3px;
+}
+
+.source-url {
+    background-color: rgba(202, 166, 75, 0.1);
+    padding: 0.8rem;
+    border-radius: 5px;
+    margin-top: 0.5rem !important;
+}
+
+.source-url a {
+    color: var(--navy);
+    font-weight: 600;
+}
+
+/* ============================================================================
+   PAGE-SPECIFIC STYLES
+   ============================================================================ */
+
+/* Player Detail Page */
+.player-detail {
+    background-color: var(--white);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: var(--gold);
+    font-weight: 600;
+}
+
+.player-header {
+    background: linear-gradient(135deg, var(--navy), #1a3a5c);
+    color: var(--white);
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.player-header h1 {
+    color: var(--white);
+    margin-bottom: 1rem;
+}
+
+.player-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.stats-section {
+    margin: 2rem 0;
+}
+
+.current-season-stats,
+.pace-stats {
+    background-color: var(--light-gray);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.stats-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.stat-box {
+    background-color: var(--white);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--gold);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--light-text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--navy);
+}
+
+.pace-stats ul {
+    margin-left: 1.5rem;
+}
+
+.pace-stats li {
+    margin-bottom: 0.7rem;
+    color: var(--dark-text);
+}
+
+/* Projections Section */
+.projection-section {
+    background-color: var(--light-gray);
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+}
+
+.projection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.projection-card {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-top: 4px solid var(--gold);
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.proj-label {
+    font-size: 0.85rem;
+    color: var(--light-text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.proj-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--navy);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.proj-current {
+    font-size: 0.9rem;
+    color: var(--light-text);
+    display: block;
+}
+
+.projection-note {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-left: 4px solid var(--error);
+    padding: 1rem;
+    border-radius: 5px;
+    margin: 1rem 0;
+    font-size: 0.95rem;
+    color: var(--dark-text);
+}
+
+.tips-section {
+    background-color: rgba(202, 166, 75, 0.1);
+    border-left: 4px solid var(--gold);
+    padding: 1.5rem;
+    border-radius: 5px;
+    margin: 2rem 0;
+}
+
+.tips-section h3 {
+    margin-top: 0;
+}
+
+.tips-section ul {
+    margin-left: 1.5rem;
+}
+
+.tips-section li {
+    margin-bottom: 0.7rem;
+}
+
+/* About Data Page */
+.schema-tables {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.schema-table {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--navy);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.schema-table h3 {
+    margin-top: 0;
+    color: var(--navy);
+    margin-bottom: 1rem;
+}
+
+.field-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.field-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--dark-text);
+}
+
+.field-list li:last-child {
+    border-bottom: none;
+}
+
+.field-list code {
+    background-color: rgba(11, 31, 65, 0.05);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    color: var(--navy);
+}
+
+.usage-section,
+.dev-info {
+    background-color: var(--white);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dev-box {
+    background-color: var(--light-gray);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--gold);
+}
+
+.usage-section ol {
+    margin-left: 1.5rem;
+}
+
+.usage-section li {
+    margin-bottom: 0.7rem;
+}
+
+.dev-box ul {
+    margin-left: 1.5rem;
+}
+
+.dev-box li {
+    margin-bottom: 0.5rem;
+}
+
+/* No Data Message */
+.no-data {
+    background-color: rgba(107, 114, 128, 0.1);
+    padding: 2rem;
+    text-align: center;
+    border-radius: 8px;
+    color: var(--light-text);
+    margin: 1rem 0;
+}
+
+/* ============================================================================
+   FOOTER
+   ============================================================================ */
+
+.footer {
+    background-color: var(--navy);
+    color: var(--white);
+    padding: 2rem 0;
+    margin-top: 3rem;
+    border-top: 4px solid var(--orange);
+}
+
+.footer p {
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.footer a {
+    color: var(--orange);
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .navbar-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .navbar-menu {
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        justify-content: center;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .filter-section {
+        flex-direction: column;
+    }
+
+    .search-box {
+        min-width: auto;
+    }
+
+    .stats-grid,
+    .cards-container,
+    .projection-grid,
+    .stats-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .stats-table,
+    .players-table,
+    .projections-table {
+        font-size: 0.85rem;
+    }
+
+    .stats-table th,
+    .players-table th,
+    .projections-table th {
+        padding: 0.6rem;
+    }
+
+    .stats-table td,
+    .players-table td,
+    .projections-table td {
+        padding: 0.5rem;
+    }
+
+    .player-detail {
+        padding: 1rem;
+    }
+
+    .filter-box {
+        flex: 1;
+        min-width: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        font-size: 14px;
+    }
+
+    .main-content {
+        padding: 20px 0;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    h2 {
+        font-size: 1.2rem;
+    }
+
+    .container {
+        padding: 0 15px;
+    }
+
+    .navbar-menu {
+        gap: 0.5rem;
+    }
+
+    .nav-link {
+        font-size: 0.9rem;
+    }
+
+    .cards-container {
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+    }
+}
+
+/* ============================================================================
+   PRINT STYLES
+   ============================================================================ */
+
+@media print {
+    .navbar,
+    .footer,
+    .filter-section,
+    .learning-note {
+        display: none;
+    }
+
+    body {
+        background-color: var(--white);
+    }
+
+    .container {
+        max-width: 100%;
+    }
+}

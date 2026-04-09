@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}🏒 Erie Otters Stats Hub{% endblock %}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <a href="/" class="logo">
+                    <svg width="40" height="40" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Otter head silhouette -->
+                        <circle cx="50" cy="35" r="25" fill="#FFD700" stroke="#00205B" stroke-width="2"/>
+                        <!-- Ears -->
+                        <circle cx="32" cy="18" r="8" fill="#FFD700" stroke="#00205B" stroke-width="1.5"/>
+                        <circle cx="68" cy="18" r="8" fill="#FFD700" stroke="#00205B" stroke-width="1.5"/>
+                        <!-- Eyes -->
+                        <circle cx="40" cy="30" r="4" fill="#00205B"/>
+                        <circle cx="60" cy="30" r="4" fill="#00205B"/>
+                        <!-- Snout -->
+                        <ellipse cx="50" cy="45" rx="12" ry="10" fill="#FFD700" stroke="#00205B" stroke-width="1.5"/>
+                        <!-- Nose -->
+                        <circle cx="50" cy="45" r="3" fill="#00205B"/>
+                        <!-- Mouth -->
+                        <path d="M 50 48 Q 45 52 40 50" stroke="#00205B" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 50 48 Q 55 52 60 50" stroke="#00205B" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    </svg>
+                    <span style="color: #FFD700;">Erie Otters</span>
+                </a>
+            </div>
+            <nav class="navbar-menu">
+                <a href="/" class="nav-link" id="nav-home">Home</a>
+                <a href="/leaders" class="nav-link" id="nav-leaders">Leaders</a>
+                <a href="/players" class="nav-link" id="nav-players">Players</a>
+                <a href="/predict" class="nav-link" id="nav-predict">Projections</a>
+                <a href="/about-data" class="nav-link" id="nav-data">Data</a>
+                {% if debug %}
+                <a href="/admin/refresh-data" class="nav-link admin" id="nav-refresh">Refresh</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            {% block content %}
+            <!-- Content goes here -->
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p style="font-weight: 600; color: #00205B;">
+                🏒 <strong>Erie Otters Statistics Dashboard</strong>
+                <br/>
+                <span style="font-size: 0.95em;">OHL · Ontario Hockey League</span>
+            </p>
+            <p style="font-size: 0.9em; color: #666;">
+                📚 Learning Dashboard · Database queries visible · Built with FastAPI + SQLModel<br/>
+                Last Update: <span id="refresh-time">checking...</span>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Show current time
+        document.getElementById('refresh-time').textContent = new Date().toLocaleString();
+
+        // ===== Secure Navigation Between Tabs =====
+        // Extract current season from URL and apply to all navigation links
+        function getSeasonFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('season') || '2019'; // Default to 2019
+        }
+
+        function updateNavigationLinks() {
+            const currentSeason = getSeasonFromURL();
+            const navLinks = {
+                'nav-home': '/',
+                'nav-leaders': '/leaders',
+                'nav-players': '/players',
+                'nav-predict': '/predict',
+                'nav-data': '/about-data',
+                'nav-refresh': '/admin/refresh-data'
+            };
+
+            Object.entries(navLinks).forEach(([id, path]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    // Append season parameter to all links
+                    element.href = `${path}?season=${currentSeason}`;
+                }
+            });
+        }
+
+        // Update navigation links when page loads
+        document.addEventListener('DOMContentLoaded', updateNavigationLinks);
+    </script>
+
+    {% block extra_js %}
+    <!-- Extra scripts go here -->
+    {% endblock %}
+</body>
+</html>

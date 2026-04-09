@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="page-title">{{ title }}</h2>
+    <p class="page-subtitle">{{ subtitle }}</p>
+    
+    <!-- ALERT IF NO DATA -->
+    {% if not data %}
+    <div class="alert alert-warning">
+        <strong>No data found.</strong> Try adjusting your filters or explore another section.
+    </div>
+    {% else %}
+    
+    <!-- FILTER SECTION (Optional) -->
+    {% if filters %}
+    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem; color: var(--otters-navy);">🔍 Filter Options</h3>
+        <form method="get" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            {% for filter_name, filter_value in filters.items() %}
+                {% if filter_name != 'page' %}
+                <div class="form-group" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                    <label>{{ filter_name.replace('_', ' ').title() }}</label>
+                    <input type="text" name="{{ filter_name }}" value="{{ filter_value or '' }}" placeholder="Enter {{ filter_name }}">
+                </div>
+                {% endif %}
+            {% endfor %}
+            <div style="flex: 0 0 auto; display: flex; align-items: flex-end;">
+                <button type="submit" class="btn">🔍 Search</button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- DATA TABLE -->
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    {% for column in columns %}
+                    <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    {% for item in row %}
+                    <td>{{ item }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- RESULTS SUMMARY -->
+    <div style="margin-top: 1.5rem; padding: 1rem; background: var(--otters-light); border-radius: 8px;">
+        <strong>📊 Results Summary:</strong> Showing {{ data|length }} record{{ 's' if data|length != 1 else '' }}
+    </div>
+
+    <!-- LEARNING NOTE - SQL QUERY DISPLAY -->
+    <div class="learning-note">
+        <h3><span class="expand-btn">▶</span> Learning Note: How This Data Was Retrieved</h3>
+        <p>
+            The data above was retrieved using this SQL query. Click to expand and see the exact code 
+            your database uses to fetch this information. This is a great way to understand how data 
+            retrieval works!
+        </p>
+        <pre class="query-code">{{ query }}</pre>
+        
+        <!-- QUERY EXPLANATION -->
+        {% if query_explanation %}
+        <div style="margin-top: 1rem; padding: 1rem; background: rgba(11, 31, 65, 0.05); border-radius: 6px;">
+            <strong style="color: var(--otters-navy);">📖 What this query does:</strong>
+            <p style="margin-top: 0.5rem; color: #4b5563;">{{ query_explanation }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% endif %}
+</div>
+
+<!-- KEY CONCEPTS SIDEBAR -->
+<div class="container">
+    <h3>💡 Key SQL Concepts Used</h3>
+    <div class="grid grid-2">
+        <div style="padding: 1rem; background: var(--otters-light); border-radius: 8px;">
+            <strong style="color: var(--otters-navy);">SELECT</strong>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #6b7280;">
+                Specifies which columns to retrieve from the database.
+            </p>
+        </div>
+        <div style="padding: 1rem; background: var(--otters-light); border-radius: 8px;">
+            <strong style="color: var(--otters-navy);">FROM</strong>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #6b7280;">
+                Specifies which table to retrieve data from.
+            </p>
+        </div>
+        <div style="padding: 1rem; background: var(--otters-light); border-radius: 8px;">
+            <strong style="color: var(--otters-navy);">WHERE</strong>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #6b7280;">
+                Filters results based on conditions you specify.
+            </p>
+        </div>
+        <div style="padding: 1rem; background: var(--otters-light); border-radius: 8px;">
+            <strong style="color: var(--otters-navy);">ORDER BY</strong>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #6b7280;">
+                Sorts results in ascending or descending order.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

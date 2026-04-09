@@ -1,0 +1,652 @@
+{% extends "base.html" %}
+
+{% block title %}Season {{ season }} Analysis - Erie Otters{% endblock %}
+
+{% block content %}
+<div class="analysis-dashboard">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1>📊 Season {{ season }} Analysis Dashboard</h1>
+            <p class="season-label">{{ season_label }}</p>
+        </div>
+        
+        <!-- Season Selector -->
+        {% if available_seasons %}
+        <div class="season-selector">
+            <label for="season-select">Jump to Season:</label>
+            <select id="season-select" onchange="window.location.href='/predict?season=' + this.value">
+                {% for s in available_seasons %}
+                <option value="{{ s }}" {% if s == season %}selected{% endif %}>{{ s }}-{{ s+1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Season Overview Cards -->
+    {% if season_overview %}
+    <div class="overview-cards">
+        <div class="overview-card">
+            <div class="card-icon">👥</div>
+            <div class="card-body">
+                <span class="card-label">Total Players</span>
+                <span class="card-value">{{ season_overview.player_count }}</span>
+            </div>
+        </div>
+
+        <div class="overview-card">
+            <div class="card-icon">⚽</div>
+            <div class="card-body">
+                <span class="card-label">Total Goals</span>
+                <span class="card-value">{{ season_overview.total_goals }}</span>
+            </div>
+        </div>
+
+        <div class="overview-card">
+            <div class="card-icon">🎯</div>
+            <div class="card-body">
+                <span class="card-label">Total Assists</span>
+                <span class="card-value">{{ season_overview.total_assists }}</span>
+            </div>
+        </div>
+
+        <div class="overview-card">
+            <div class="card-icon">⚡</div>
+            <div class="card-body">
+                <span class="card-label">Avg PPG</span>
+                <span class="card-value">{{ season_overview.avg_ppg }}</span>
+            </div>
+        </div>
+
+        <div class="overview-card">
+            <div class="card-icon">📈</div>
+            <div class="card-body">
+                <span class="card-label">Total Points</span>
+                <span class="card-value">{{ season_overview.total_points }}</span>
+            </div>
+        </div>
+
+        <div class="overview-card">
+            <div class="card-icon">🛡️</div>
+            <div class="card-body">
+                <span class="card-label">Penalty Minutes</span>
+                <span class="card-value">{{ season_overview.total_pim }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+        <div class="chart-container">
+            <h3>Top 10 Scorers - Points Comparison</h3>
+            <canvas id="topScorersChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3>Points Per Game Leaders</h3>
+            <canvas id="ppgChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3>Top Scorers - Goals vs Assists</h3>
+            <canvas id="gaChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3>Games Played Distribution</h3>
+            <canvas id="gamesChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Sorting/Filtering Section -->
+    <div class="controls-section">
+        <h2>👥 Player Performance Table</h2>
+        <div class="sort-controls">
+            <label>Sort By:</label>
+            <div class="button-group">
+                <a href="/predict?season={{ season }}&sort_by=points" 
+                   class="sort-btn {% if current_sort == 'points' %}active{% endif %}">
+                   Points
+                </a>
+                <a href="/predict?season={{ season }}&sort_by=ppg" 
+                   class="sort-btn {% if current_sort == 'ppg' %}active{% endif %}">
+                   PPG
+                </a>
+                <a href="/predict?season={{ season }}&sort_by=goals" 
+                   class="sort-btn {% if current_sort == 'goals' %}active{% endif %}">
+                   Goals
+                </a>
+                <a href="/predict?season={{ season }}&sort_by=assists" 
+                   class="sort-btn {% if current_sort == 'assists' %}active{% endif %}">
+                   Assists
+                </a>
+                <a href="/predict?season={{ season }}&sort_by=games" 
+                   class="sort-btn {% if current_sort == 'games' %}active{% endif %}">
+                   Games
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Players Table -->
+    {% if players %}
+    <div class="table-wrapper">
+        <table class="players-analysis-table">
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Pos</th>
+                    <th>GP</th>
+                    <th>Goals</th>
+                    <th>Assists</th>
+                    <th>Points</th>
+                    <th>PPG</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in players %}
+                <tr class="player-row" onclick="window.location.href='/player/{{ player.name | replace(' ', '%20') }}';" style="cursor: pointer;">
+                    <td class="player-name-cell">
+                        <a href="/player/{{ player.name | replace(' ', '%20') }}" class="player-link">
+                            {{ player.name }}
+                        </a>
+                    </td>
+                    <td>{{ player.position or '-' }}</td>
+                    <td>{{ player.games_played }}</td>
+                    <td>{{ player.goals }}</td>
+                    <td>{{ player.assists }}</td>
+                    <td><strong>{{ player.points }}</strong></td>
+                    <td class="ppg-badge">{{ player.ppg }}</td>
+                    <td>
+                        <a href="/player/{{ player.name | replace(' ', '%20') }}" class="action-btn">Details →</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p class="result-count">Showing {{ players|length }} player(s)</p>
+    {% else %}
+    <p class="no-data">No player data available for this season.</p>
+    {% endif %}
+
+    <!-- SQL Query Section -->
+    {% if query_string %}
+    <section class="query-section">
+        <h3>📍 SQL Query Behind This Dashboard</h3>
+        <pre><code>{{ query_string }}</code></pre>
+    </section>
+    {% endif %}
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chartData = {{ chart_data_json | safe }};
+    
+    // Common chart styling
+    const chartDefaults = {
+        font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
+        color: '#6b7280'
+    };
+    
+    Chart.defaults.font = chartDefaults.font;
+    Chart.defaults.color = chartDefaults.color;
+    
+    // Top Scorers Chart
+    new Chart(document.getElementById('topScorersChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.names.slice(0, 10),
+            datasets: [{
+                label: 'Points',
+                data: chartData.points.slice(0, 10),
+                backgroundColor: '#00205B',
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: '#e5e7eb' }
+                },
+                y: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+    
+    // PPG Chart
+    new Chart(document.getElementById('ppgChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.names.slice(0, 10),
+            datasets: [{
+                label: 'Points Per Game',
+                data: chartData.ppg.slice(0, 10),
+                backgroundColor: '#FFD700',
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: '#e5e7eb' }
+                },
+                y: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+    
+    // Goals vs Assists Chart
+    new Chart(document.getElementById('gaChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.names.slice(0, 10),
+            datasets: [
+                {
+                    label: 'Goals',
+                    data: chartData.goals.slice(0, 10),
+                    backgroundColor: '#00205B'
+                },
+                {
+                    label: 'Assists',
+                    data: chartData.assists.slice(0, 10),
+                    backgroundColor: '#FFD700'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: true }
+            },
+            scales: {
+                x: { stacked: false, grid: { display: false } },
+                y: { stacked: false, grid: { color: '#e5e7eb' } }
+            }
+        }
+    });
+    
+    // Games Chart
+    new Chart(document.getElementById('gamesChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.names.slice(0, 10),
+            datasets: [{
+                label: 'Games Played',
+                data: chartData.games.slice(0, 10),
+                backgroundColor: '#1a3a6b',
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#e5e7eb' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.analysis-dashboard {
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-content h1 {
+    margin-bottom: 0.25rem;
+}
+
+.season-label {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.season-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.season-selector label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.season-selector select {
+    padding: 0.5rem 0.75rem;
+    border: 2px solid #00205B;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.season-selector select:hover,
+.season-selector select:focus {
+    border-color: #FFD700;
+    outline: none;
+}
+
+.overview-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.overview-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.overview-card:hover {
+    border-color: #FFD700;
+    box-shadow: 0 4px 8px rgba(0,32,91,0.1);
+    transform: translateY(-2px);
+}
+
+.card-icon {
+    font-size: 1.8rem;
+    min-width: 45px;
+    text-align: center;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-label {
+    font-size: 0.8rem;
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-value {
+    font-size: 1.5rem;
+    color: #00205B;
+    font-weight: 700;
+}
+
+.charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.chart-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.chart-container h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #00205B;
+    font-size: 1rem;
+}
+
+.controls-section {
+    margin: 2rem 0 1.5rem 0;
+}
+
+.controls-section h2 {
+    margin-bottom: 1rem;
+}
+
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+}
+
+.sort-controls label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.button-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.sort-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    background: white;
+    color: #00205B;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sort-btn:hover {
+    border-color: #00205B;
+    background: #f0f9ff;
+}
+
+.sort-btn.active {
+    background: #00205B;
+    color: #FFD700;
+    border-color: #00205B;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    background: white;
+}
+
+.players-analysis-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.players-analysis-table thead {
+    background: #00205B;
+    color: white;
+}
+
+.players-analysis-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.players-analysis-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.players-analysis-table tbody tr {
+    transition: all 0.1s;
+}
+
+.players-analysis-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.player-name-cell {
+    font-weight: 600;
+}
+
+.player-link {
+    color: #00205B;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.player-link:hover {
+    color: #FFD700;
+    text-decoration: underline;
+}
+
+.ppg-badge {
+    background: #f0f9ff;
+    color: #00205B;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.action-btn {
+    padding: 0.4rem 0.8rem;
+    background: #FFD700;
+    color: #00205B;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: inline-block;
+}
+
+.action-btn:hover {
+    background: #00205B;
+    color: #FFD700;
+}
+
+.result-count {
+    text-align: center;
+    margin: 1rem 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #9ca3af;
+}
+
+.query-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #fafbfc;
+    border-left: 4px solid #FFD700;
+    border-radius: 6px;
+}
+
+.query-section h3 {
+    margin-top: 0;
+}
+
+.query-section pre {
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+}
+
+.query-section code {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.85rem;
+    color: #00205B;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .charts-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .overview-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .players-analysis-table {
+        font-size: 0.9rem;
+    }
+    
+    .players-analysis-table th,
+    .players-analysis-table td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+</style>
+{% endblock %}

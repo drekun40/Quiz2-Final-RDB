@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Players - Erie Otters Stats{% endblock %}
+
+{% block content %}
+<section class="players-page">
+    <h1>👥 Players Directory</h1>
+
+    <!-- Filter and Search Section -->
+    <div class="filter-section">
+        <div class="search-box">
+            <form method="get" action="/players">
+                <input 
+                    type="text" 
+                    name="search" 
+                    placeholder="Search by player name..." 
+                    value="{{ search_term or '' }}"
+                    class="search-input"
+                >
+                <button type="submit" class="btn btn-secondary">Search</button>
+            </form>
+        </div>
+
+        <div class="filter-box">
+            <label for="position-filter">Filter by Position:</label>
+            <select id="position-filter" name="position" onchange="applyFilters()">
+                <option value="">All Positions</option>
+                {% for pos in positions %}
+                <option value="{{ pos }}" {% if pos == selected_position %}selected{% endif %}>{{ pos }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if available_seasons %}
+        <div class="filter-box">
+            <label for="season-filter">Season:</label>
+            <select id="season-filter" name="season" onchange="applyFilters()">
+                <option value="">All Seasons</option>
+                {% for s in available_seasons %}
+                <option value="{{ s }}" {% if s == selected_season %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Players Table -->
+    {% if players %}
+    <div class="table-container">
+        <table class="players-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Position</th>
+                    <th>Jersey #</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in players %}
+                <tr class="player-row" onclick="window.location.href='/player/{{ player.name | replace(' ', '%20') }}';" style="cursor: pointer;">
+                    <td class="player-name">
+                        <a href="/player/{{ player.name | replace(' ', '%20') }}" class="player-link">
+                            {{ player.name }}
+                        </a>
+                    </td>
+                    <td class="position">
+                        <span class="pos-badge">{{ player.position }}</span>
+                    </td>
+                    <td class="jersey">{{ player.jersey_number or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p class="result-count">Showing {{ players|length }} player(s) across all seasons</p>
+    {% else %}
+    <p class="no-data">
+        {% if search_term or selected_position %}
+            No players found matching your search.
+        {% else %}
+            No player data available.
+        {% endif %}
+    </p>
+    {% endif %}
+
+    <!-- SQL Query Display - Always Visible -->
+    {% if query_string %}
+    <section class="query-section">
+        <h3>📍 SQL Query Behind This Page</h3>
+        <p>This table was retrieved using this SQL query:</p>
+        <pre><code>{{ query_string }}</code></pre>
+        <p style="margin-top: 1rem; font-size: 0.9em; color: #666;">
+            <strong>Key SQL concepts:</strong>
+            <code>SELECT</code> (columns) · <code>FROM</code> (table) · <code>WHERE</code> (filter) · <code>ORDER BY</code> (sort) · <code>LIKE</code> (pattern search)
+        </p>
+    </section>
+    {% endif %}
+</section>
+
+<style>
+    .player-row {
+        transition: all 0.15s;
+    }
+    
+    .player-row:hover {
+        background-color: #f0f9ff;
+        box-shadow: inset 4px 0 0 #FFD700;
+    }
+    
+    .player-link {
+        color: #00205B;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    
+    .player-row:hover .player-link {
+        color: #FFD700;
+        text-decoration: underline;
+    }
+    
+    .player-link:hover {
+        color: #FFD700;
+    }
+</style>
+
+<script>
+    function applyFilters() {
+        const position = document.getElementById('position-filter').value;
+        const season = document.getElementById('season-filter').value;
+        let url = '/players?';
+        if (position) url += `position=${position}&`;
+        if (season) url += `season=${season}`;
+        window.location.href = url;
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Erie Otters Stats Hub - Home{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>🏒 Erie Otters Stats Hub</h1>
+    <p class="hero-subtitle">Explore historic player statistics from 2010-2019 · OHL Database & Analytics</p>
+</div>
+
+<!-- Season Selector -->
+{% if available_seasons %}
+<div class="filter-section" style="margin-bottom: 2rem; background-color: #00205B; color: white; border: 2px solid #FFD700;">
+    <label for="season-select" style="color: #FFD700; font-weight: 600;">📅 Select Season:</label>
+    <select id="season-select" onchange="window.location.href='/?season=' + this.value" style="margin-left: 1rem; padding: 0.4rem; border: 1px solid #FFD700;">
+        {% for s in available_seasons %}
+        <option value="{{ s }}" {% if s == current_season %}selected{% endif %}>{{ s }}-{{ s+1 }}</option>
+        {% endfor %}
+    </select>
+</div>
+{% endif %}
+
+<!-- Quick Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3 class="stat-number">{{ player_count }}</h3>
+        <p class="stat-label">Total Players</p>
+    </div>
+    <div class="stat-card">
+        <h3 class="stat-number">10</h3>
+        <p class="stat-label">Seasons</p>
+    </div>
+    <div class="stat-card">
+        <h3 class="stat-number">172</h3>
+        <p class="stat-label">Season Records</p>
+    </div>
+    <div class="stat-card">
+        <h3 class="stat-number">📊</h3>
+        <p class="stat-label">SQL Learning</p>
+    </div>
+</div>
+
+<!-- Main Navigation Cards -->
+<section class="cards-container">
+    <div class="feature-card">
+        <div class="card-icon">📈</div>
+        <h2>Season Leaders</h2>
+        <p>View top scorers, point leaders, and most penalized players across seasons. See player rankings and performance metrics.</p>
+        <a href="/leaders?season={{ current_season }}" class="btn btn-primary">View Leaders →</a>
+    </div>
+
+    <div class="feature-card">
+        <div class="card-icon">👥</div>
+        <h2>All Players</h2>
+        <p>Search and explore detailed information on all 68 unique players including positions, stats, and season-by-season data.</p>
+        <a href="/players?season={{ current_season }}" class="btn btn-primary">Browse Players →</a>
+    </div>
+
+    <div class="feature-card">
+        <div class="card-icon">🔍</div>
+        <h2>Player Details</h2>
+        <p>Deep dive into individual player profiles with complete career statistics, season breakdown, and performance trends.</p>
+        <a href="/predict?season={{ current_season }}" class="btn btn-primary">View Details →</a>
+    </div>
+
+    <div class="feature-card">
+        <div class="card-icon">💾</div>
+        <h2>Data & Analytics</h2>
+        <p>Learn about our data sources, database structure, and see the SQL queries powering each page.</p>
+        <a href="/about-data?season={{ current_season }}" class="btn btn-primary">Explore Data →</a>
+    </div>
+</section>
+
+<!-- Learning Section -->
+<section class="info-section">
+    <h2>📚 About This Dashboard</h2>
+    <div class="info-boxes">
+        <div class="info-box">
+            <h3>Learn SQL</h3>
+            <p>Every page shows the actual SQL query used to retrieve the data. This is a great learning resource for understanding how databases work and how to query them.</p>
+        </div>
+        <div class="info-box">
+            <h3>Erie Otters Data</h3>
+            <p>Comprehensive statistics for the Erie Otters (OHL) covering 2010-2019. Featuring legendary players like Connor McDavid, Bo Horvat, and Alex DeBrincat.</p>
+        </div>
+        <div class="info-box">
+            <h3>One Database Per Season</h3>
+            <p>This dashboard uses a unique architecture with separate SQLite databases for each season (2010-2019), allowing for independent season analysis and efficient data management.</p>
+        </div>
+        <div class="info-box">
+            <h3>Local Development</h3>
+            <p>This app runs on your local machine with SQLite. 
+               No external servers needed for learning and exploration.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Learning Section - SQL Query Visible -->
+{% if query_string %}
+<section class="query-section">
+    <h2>📍 SQL Queries Behind This Page</h2>
+    <p>Here are the actual database queries used to generate this dashboard:</p>
+    <pre><code>{{ query_string }}</code></pre>
+    <p style="margin-top: 1rem; font-size: 0.9em; color: #666;">
+        <em>💡 Tip: Try running this yourself in a SQL client to understand how the data is retrieved!</em>
+    </p>
+</section>
+{% endif %}
+{% endblock %}

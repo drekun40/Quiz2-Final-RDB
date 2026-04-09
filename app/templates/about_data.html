@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}About Data - Erie Otters Stats{% endblock %}
+
+{% block content %}
+<section class="about-data">
+    <h1>💾 About Our Data</h1>
+
+    <!-- Season Selector -->
+    {% if available_seasons %}
+    <div class="filter-section">
+        <label for="season-select">Select Season:</label>
+        <select id="season-select" onchange="window.location.href='/about-data?season=' + this.value">
+            {% for s in available_seasons %}
+            <option value="{{ s }}" {% if s == season %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+
+    <!-- Data Sources -->
+    <section class="info-section">
+        <h2>📍 Data Sources</h2>
+        <div class="info-boxes">
+            <div class="info-box">
+                <h3>Ontario Hockey League (OHL)</h3>
+                <p>
+                    All Erie Otters player statistics are sourced from the official 
+                    <strong>OHL (Ontario Hockey League)</strong> website.
+                </p>
+                <p class="source-url">
+                    📌 <a href="https://www.ontariohockeyleague.com" target="_blank">
+                        ontariohockeyleague.com
+                    </a>
+                </p>
+            </div>
+
+            <div class="info-box">
+                <h3>Local SQLite Database</h3>
+                <p>
+                    This dashboard stores all data in a local SQLite database. 
+                    No data is sent to external servers.
+                </p>
+                <p>
+                    <strong>Location:</strong> <code>./erie_otters.db</code>
+                </p>
+            </div>
+
+            <div class="info-box">
+                <h3>Update Frequency</h3>
+                <p>
+                    Data can be manually refreshed using the admin panel 
+                    (available in development mode only).
+                </p>
+                <p>
+                    In production, set up scheduled refresh tasks or use official APIs.
+                </p>
+            </div>
+
+            <div class="info-box">
+                <h3>Data Accuracy</h3>
+                <p>
+                    This dashboard depends on the accuracy of source data. 
+                    For official records, always check the OHL website directly.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Refresh History -->
+    <section class="refresh-history">
+        <h2>🔄 Refresh History</h2>
+        
+        {% if refresh_logs %}
+        <table class="refresh-table">
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                    <th>Records</th>
+                    <th>Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in refresh_logs %}
+                <tr class="refresh-row-{{ log.status }}">
+                    <td class="refresh-time">
+                        {{ log.refresh_time.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </td>
+                    <td class="status">
+                        {% if log.status == 'success' %}
+                            <span class="badge badge-success">✓ Success</span>
+                        {% else %}
+                            <span class="badge badge-error">✗ Error</span>
+                        {% endif %}
+                    </td>
+                    <td class="records">{{ log.record_count }}</td>
+                    <td class="source">{{ log.source_url | truncate(30) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="no-data">No refresh history available. Data hasn't been refreshed yet.</p>
+        {% endif %}
+    </section>
+
+    <!-- Database Schema -->
+    <section class="schema-section">
+        <h2>🗄️ Database Schema</h2>
+        
+        <div class="schema-tables">
+            <div class="schema-table">
+                <h3>teams</h3>
+                <ul class="field-list">
+                    <li><code>id</code> - Primary key</li>
+                    <li><code>name</code> - Team name (e.g., "Erie Otters")</li>
+                    <li><code>city</code> - City name</li>
+                    <li><code>league</code> - League (OHL)</li>
+                    <li><code>code</code> - Team code</li>
+                    <li><code>founded_year</code> - When team was founded</li>
+                </ul>
+            </div>
+
+            <div class="schema-table">
+                <h3>players</h3>
+                <ul class="field-list">
+                    <li><code>id</code> - Primary key</li>
+                    <li><code>name</code> - Full player name</li>
+                    <li><code>first_name</code> - First name</li>
+                    <li><code>last_name</code> - Last name</li>
+                    <li><code>team_id</code> - Foreign key to teams</li>
+                    <li><code>position</code> - Player position (C, LW, RW, D, G)</li>
+                    <li><code>jersey_number</code> - Jersey number</li>
+                    <li><code>birth_year</code> - Birth year</li>
+                </ul>
+            </div>
+
+            <div class="schema-table">
+                <h3>player_stats</h3>
+                <ul class="field-list">
+                    <li><code>id</code> - Primary key</li>
+                    <li><code>player_id</code> - Foreign key to players</li>
+                    <li><code>season</code> - Season year</li>
+                    <li><code>games_played</code> - Games played</li>
+                    <li><code>goals</code> - Goals scored</li>
+                    <li><code>assists</code> - Assists</li>
+                    <li><code>points</code> - Total points (goals + assists)</li>
+                    <li><code>penalty_minutes</code> - Penalty minutes</li>
+                    <li><code>plus_minus</code> - Plus/minus rating</li>
+                    <li><code>source_url</code> - Where data came from</li>
+                    <li><code>scraped_at</code> - When it was last updated</li>
+                </ul>
+            </div>
+
+            <div class="schema-table">
+                <h3>refresh_logs</h3>
+                <ul class="field-list">
+                    <li><code>id</code> - Primary key</li>
+                    <li><code>source_url</code> - Source URL scraped</li>
+                    <li><code>refresh_time</code> - When refresh occurred</li>
+                    <li><code>status</code> - Success or error</li>
+                    <li><code>record_count</code> - Records updated</li>
+                    <li><code>error_message</code> - If there was an error</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- SQL Learning -->
+    {% if query_string %}
+    <details class="learning-note">
+        <summary>📍 Learning Note: SQL Query</summary>
+        <div class="learning-content">
+            <p>This page uses this query to show refresh history:</p>
+            <pre><code>{{ query_string }}</code></pre>
+        </div>
+    </details>
+    {% endif %}
+
+    <!-- How to Use This Data -->
+    <section class="usage-section">
+        <h2>📚 How to Use This Dashboard</h2>
+        <ol>
+            <li><strong>Explore:</strong> Browse the leaders and players pages</li>
+            <li><strong>Learn SQL:</strong> Every page shows the SQL query used to get the data</li>
+            <li><strong>Analyze:</strong> See stats by player and season</li>
+            <li><strong>Project:</strong> Use our simple pace model to estimate end-of-season stats</li>
+            <li><strong>Understand:</strong> Learn how databases and queries work with real data</li>
+        </ol>
+    </section>
+
+    <!-- Development Info -->
+    <section class="dev-info">
+        <h2>⚙️ Development Info</h2>
+        <div class="dev-box">
+            <p>
+                <strong>This is a learning project!</strong> It's designed to teach:
+            </p>
+            <ul>
+                <li>FastAPI and web frameworks</li>
+                <li>SQLAlchemy ORM patterns</li>
+                <li>SQL query writing</li>
+                <li>Web scraping basics</li>
+                <li>Simple data analysis and projections</li>
+                <li>Building full-stack features end-to-end</li>
+            </ul>
+
+            <p>
+                All code is commented and organized for clarity. 
+                Use this as a template for your own data projects!
+            </p>
+
+            <p>
+                📖 <strong>Next steps:</strong> Look at the source code, modify queries, 
+                add new features, and build your own dashboards!
+            </p>
+        </div>
+    </section>
+</section>
+{% endblock %}

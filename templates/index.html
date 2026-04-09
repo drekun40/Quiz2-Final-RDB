@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Erie Otters Database Explorer{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="page-title">🏠 Welcome to the Erie Otters Database</h2>
+    <p class="page-subtitle">A beginner-friendly explorer for hockey player statistics and team data</p>
+    
+    <div class="alert alert-info">
+        <strong>Welcome!</strong> This database contains 520 player records from 26 seasons (2000-2026). 
+        Use the navigation above to explore teams, players, and statistics. Each page includes SQL queries 
+        as learning notes to help you understand how the data is retrieved.
+    </div>
+</div>
+
+<!-- QUICK ACCESS CARDS -->
+<div class="grid grid-3">
+    <!-- TEAMS CARD -->
+    <div class="card">
+        <h3>🏒 Teams</h3>
+        <p>View all teams in the database. Learn about team organization and structure.</p>
+        <div class="btn-group">
+            <a href="/teams" class="btn">Explore Teams</a>
+        </div>
+    </div>
+
+    <!-- PLAYERS CARD -->
+    <div class="card">
+        <h3>👥 Players</h3>
+        <p>Browse all players across 26 seasons. Find players by position or season.</p>
+        <div class="btn-group">
+            <a href="/players" class="btn">View Players</a>
+        </div>
+    </div>
+
+    <!-- STATISTICS CARD -->
+    <div class="card">
+        <h3>📊 Statistics</h3>
+        <p>Discover top scorers, goal leaders, and interesting statistics and trends.</p>
+        <div class="btn-group">
+            <a href="/stats" class="btn">View Stats</a>
+        </div>
+    </div>
+</div>
+
+<!-- ABOUT LEARNING NOTES -->
+<div class="container">
+    <h3>📚 About Learning Notes</h3>
+    <p>
+        Every page in this explorer displays SQL queries in "Learning Note" sections. 
+        These show you the exact SQL code used to retrieve the data you're viewing. 
+        <strong>This is a great way to learn how databases work!</strong>
+    </p>
+    
+    <p style="margin-top: 1rem;">
+        Click on any "Learning Note" header to expand or collapse the SQL query display. 
+        You'll see:
+    </p>
+    
+    <ul style="margin-left: 2rem; margin-top: 0.5rem;">
+        <li>What data is being selected</li>
+        <li>Which tables are being used</li>
+        <li>How filters and joins work</li>
+        <li>Real SQL from your database</li>
+    </ul>
+
+    <!-- EXAMPLE LEARNING NOTE -->
+    <div class="learning-note">
+        <h3><span class="expand-btn">▶</span> Example Learning Note (Click to expand)</h3>
+        <p>Here's what a typical query looks like. Click the header above to expand and see the SQL:</p>
+        <pre class="query-code">-- This is a simple query to get all teams
+SELECT 
+    team_id,
+    name,
+    city,
+    founded_year,
+    league
+FROM team;</pre>
+    </div>
+</div>
+
+<!-- QUICK REFERENCE -->
+<div class="container">
+    <h3>🎯 Quick Reference</h3>
+    <div class="grid grid-2">
+        <div>
+            <h4>Database Stats</h4>
+            <ul style="margin-left: 2rem; list-style: none;">
+                <li><strong>Total Players:</strong> 405</li>
+                <li><strong>Total Records:</strong> 520</li>
+                <li><strong>Seasons:</strong> 26 (2000-2026)</li>
+                <li><strong>Teams:</strong> 1 (Erie Otters)</li>
+            </ul>
+        </div>
+        <div>
+            <h4>Positions</h4>
+            <ul style="margin-left: 2rem; list-style: none;">
+                <li🏒 <strong>C:</strong> Center</li>
+                <li>🏒 <strong>LW:</strong> Left Wing</li>
+                <li>🏒 <strong>RW:</strong> Right Wing</li>
+                <li>🏒 <strong>D:</strong> Defenseman</li>
+                <li>🏒 <strong>G:</strong> Goaltender</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- HOW TO USE -->
+<div class="container">
+    <h3>🚀 How to Use This Explorer</h3>
+    <ol style="margin-left: 2rem; line-height: 2;">
+        <li><strong>Navigate</strong> using the menu at the top</li>
+        <li><strong>Browse</strong> data displayed in clean tables</li>
+        <li><strong>Learn</strong> by reading the SQL in Learning Note sections</li>
+        <li><strong>Expand</strong> Learning Notes to see the full SQL query</li>
+        <li><strong>Experiment</strong> Click through different sections</li>
+    </ol>
+</div>
+
+<!-- TIPS FOR LEARNING -->
+<div class="container">
+    <h3>💡 Tips for Learning SQL</h3>
+    <ul style="margin-left: 2rem; line-height: 2;">
+        <li>Try to understand what each SQL keyword does (SELECT, FROM, WHERE, etc.)</li>
+        <li>Pay attention to how tables are connected with joins</li>
+        <li>Notice how WHERE clauses filter results</li>
+        <li>See how ORDER BY sorts data</li>
+        <li>Look for patterns across different queries</li>
+    </ul>
+</div>
+
+<!-- FOOTER INFO -->
+<div class="container text-center">
+    <p style="color: #6b7280; margin-bottom: 1rem;">
+        <strong>Local Development Mode</strong><br>
+        This interface is designed for learning and local development only.
+    </p>
+    <a href="/docs" target="_blank" class="btn">View Full API Documentation</a>
+</div>
+{% endblock %}
