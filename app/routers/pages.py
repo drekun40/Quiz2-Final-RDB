@@ -56,92 +56,225 @@ def render_template(template_name: str, context: dict) -> HTMLResponse:
 # ==================== HOMEPAGE ====================
 
 @router.get("/", response_class=HTMLResponse)
-async def homepage(request: Request, season: int = CURRENT_SEASON):
+async def homepage(request: Request, season: str = str(CURRENT_SEASON)):
     """
     Homepage - Welcome dashboard with season selector
     Shows overview and quick links
     """
-    # Get engine for this season
-    engine = get_engine(season)
-    session = Session(engine)
-    
-    try:
-        # Get some basic stats for the dashboard
-        player_count = session.query(Player).count()
-        team_count = session.query(Team).count()
+    # Handle "all" seasons
+    if season.lower() == "all" or season == "0":
+        total_player_count = 0
+        total_team_count = 0
         
-        # Query string for learning
+        for season_num in AVAILABLE_SEASONS:
+            engine = get_engine(season_num)
+            session = Session(engine)
+            try:
+                player_count = session.query(Player).count()
+                team_count = session.query(Team).count()
+                total_player_count += player_count
+                total_team_count += team_count
+            finally:
+                session.close()
+        
+        # Average across seasons
+        avg_players = round(total_player_count / len(AVAILABLE_SEASONS)) if AVAILABLE_SEASONS else 0
+        
         query_string = """
-SELECT COUNT(*) as player_count FROM players;
-SELECT COUNT(*) as team_count FROM teams;
+-- Overview across all 10 seasons  
+SELECT COUNT(DISTINCT season) as seasons_count,
+       COUNT(DISTINCT p.id) as unique_players,
+       COUNT(*) as total_records
+FROM players p
+JOIN player_stats ps ON p.id = ps.player_id;
         """.strip()
         
         context = {
             'request': request,
-            'title': 'Erie Otters Stats Hub',
-            'player_count': player_count,
-            'team_count': team_count,
-            'current_season': season,
+            'title': 'Erie Otters Stats Hub - Career Overview',
+            'player_count': avg_players,
+            'team_count': total_team_count // len(AVAILABLE_SEASONS) if AVAILABLE_SEASONS else 0,
+            'current_season': 'all',
             'available_seasons': AVAILABLE_SEASONS,
-            'season_label': f"{season}-{season+1}" if season != CURRENT_SEASON else f"{season}-{season+1} (Current)",
+            'season_label': f"All Seasons Career Stats",
             'query_string': query_string,
             'debug': os.getenv("ENV", "development") == "development"
         }
         
         return render_template("index.html", context)
-    finally:
-        session.close()
+    else:
+        # Single season mode
+        try:
+            season_num = int(season)
+        except (ValueError, TypeError):
+            season_num = CURRENT_SEASON
+        
+        if season_num not in AVAILABLE_SEASONS:
+            season_num = CURRENT_SEASON
+        
+        # Get engine for this season
+        engine = get_engine(season_num)
+        session = Session(engine)
+        
+        try:
+            # Get some basic stats for the dashboard
+            player_count = session.query(Player).count()
+            team_count = session.query(Team).count()
+            
+            # Query string for learning
+            query_string = f"""
+SELECT COUNT(*) as player_count FROM players;
+SELECT COUNT(*) as team_count FROM teams;
+-- Season {season_num} roster statistics
+            """.strip()
+            
+            context = {
+                'request': request,
+                'title': 'Erie Otters Stats Hub',
+                'player_count': player_count,
+                'team_count': team_count,
+                'current_season': season_num,
+                'available_seasons': AVAILABLE_SEASONS,
+                'season_label': f"{season_num}-{season_num+1}" if season_num != CURRENT_SEASON else f"{season_num}-{season_num+1} (Current)",
+                'query_string': query_string,
+                'debug': os.getenv("ENV", "development") == "development"
+            }
+            
+            return render_template("index.html", context)
+        finally:
+            session.close()
 
 # ==================== LEADERS PAGE ====================
 
 @router.get("/leaders", response_class=HTMLResponse)
 async def leaders(
     request: Request,
-    season: int = CURRENT_SEASON
+    season: str = str(CURRENT_SEASON)
 ):
     """
     Season leaders/analysis page
-    Shows leaderboards for all seasons
+    Shows leaderboards for single season or all seasons combined
     """
-    engine = get_engine(season)
-    session = Session(engine)
-    
-    try:
-        # Show leaderboards for all seasons
-        try:
-            leaders_data = StatsService.get_season_leaders(session, season)
-            top_scorers_data, scorers_query = leaders_data['scorers']
-            top_points_data, points_query = leaders_data['points']
-            top_penalized_data, penalized_query = leaders_data['penalized']
-        except Exception as e:
-            logger.error(f"Error loading leaders: {e}")
-            top_scorers_data, scorers_query = [], ""
-            top_points_data, points_query = [], ""
-            top_penalized_data, penalized_query = [], ""
+    # Handle "all" seasons
+    if season.lower() == "all" or season == "0":
+        # Aggregate leaders from all seasons
+        all_scorers = {}
+        all_points = {}
+        all_penalized = {}
         
-        is_completed = is_season_completed(season)
-        season_label = f"{season}-{season+1} (Completed)" if is_completed else f"{season}-{season+1} (Current)"
+        for season_num in AVAILABLE_SEASONS:
+            engine = get_engine(season_num)
+            session = Session(engine)
+            
+            try:
+                leaders_data = StatsService.get_season_leaders(session, season_num)
+                
+                # Aggregate scorers
+                for scorer in leaders_data['scorers'][0]:
+                    name = scorer.get('name') or scorer.get('player_name', '')
+                    if name not in all_scorers:
+                        all_scorers[name] = {
+                            'name': name,
+                            'goals': 0,
+                            'position': scorer.get('position', '-')
+                        }
+                    all_scorers[name]['goals'] += scorer.get('goals', 0)
+                
+                # Aggregate points
+                for pts in leaders_data['points'][0]:
+                    name = pts.get('name') or pts.get('player_name', '')
+                    if name not in all_points:
+                        all_points[name] = {
+                            'name': name,
+                            'points': 0,
+                            'position': pts.get('position', '-')
+                        }
+                    all_points[name]['points'] += pts.get('points', 0)
+                
+                # Aggregate penalized
+                for pen in leaders_data['penalized'][0]:
+                    name = pen.get('name') or pen.get('player_name', '')
+                    if name not in all_penalized:
+                        all_penalized[name] = {
+                            'name': name,
+                            'penalty_minutes': 0,
+                            'position': pen.get('position', '-')
+                        }
+                    all_penalized[name]['penalty_minutes'] += pen.get('penalty_minutes', 0)
+            finally:
+                session.close()
+        
+        # Convert dicts to sorted lists
+        top_scorers_data = sorted(all_scorers.values(), key=lambda x: x['goals'], reverse=True)[:10]
+        top_points_data = sorted(all_points.values(), key=lambda x: x['points'], reverse=True)[:10]
+        top_penalized_data = sorted(all_penalized.values(), key=lambda x: x['penalty_minutes'], reverse=True)[:10]
         
         context = {
             'request': request,
-            'title': f'Season {season} Leaderboards',
-            'season': season,
-            'current_season': season,
-            'season_label': season_label,
+            'title': 'Career Leaderboards',
+            'season': 'all',
+            'current_season': 'all',
+            'season_label': 'Career Stats (All 10 Seasons)',
             'available_seasons': AVAILABLE_SEASONS,
-            'is_completed': is_completed,
+            'is_completed': True,
             'scorers': top_scorers_data,
-            'scorers_query': scorers_query,
+            'scorers_query': '-- Top career goal scorers across all seasons',
             'points': top_points_data,
-            'points_query': points_query,
+            'points_query': '-- Top career point leaders across all seasons',
             'penalized': top_penalized_data,
-            'penalized_query': penalized_query,
+            'penalized_query': '-- Most penalized players across all seasons',
         }
         
         return render_template("leaders.html", context)
-    
-    finally:
-        session.close()
+    else:
+        # Single season mode
+        try:
+            season_num = int(season)
+        except (ValueError, TypeError):
+            season_num = CURRENT_SEASON
+        
+        if season_num not in AVAILABLE_SEASONS:
+            season_num = CURRENT_SEASON
+        
+        engine = get_engine(season_num)
+        session = Session(engine)
+        
+        try:
+            # Show leaderboards for single season
+            try:
+                leaders_data = StatsService.get_season_leaders(session, season_num)
+                top_scorers_data, scorers_query = leaders_data['scorers']
+                top_points_data, points_query = leaders_data['points']
+                top_penalized_data, penalized_query = leaders_data['penalized']
+            except Exception as e:
+                logger.error(f"Error loading leaders: {e}")
+                top_scorers_data, scorers_query = [], ""
+                top_points_data, points_query = [], ""
+                top_penalized_data, penalized_query = [], ""
+            
+            is_completed = is_season_completed(season_num)
+            season_label = f"{season_num}-{season_num+1} (Completed)" if is_completed else f"{season_num}-{season_num+1} (Current)"
+            
+            context = {
+                'request': request,
+                'title': f'Season {season_num} Leaderboards',
+                'season': season_num,
+                'current_season': season_num,
+                'season_label': season_label,
+                'available_seasons': AVAILABLE_SEASONS,
+                'is_completed': is_completed,
+                'scorers': top_scorers_data,
+                'scorers_query': scorers_query,
+                'points': top_points_data,
+                'points_query': points_query,
+                'penalized': top_penalized_data,
+                'penalized_query': penalized_query,
+            }
+            
+            return render_template("leaders.html", context)
+        
+        finally:
+            session.close()
 
 # ==================== PLAYERS PAGE ====================
 
@@ -320,47 +453,178 @@ async def player_detail(
 @router.get("/predict", response_class=HTMLResponse)
 async def predict_page(
     request: Request,
-    season: int = CURRENT_SEASON,
+    season: str = str(CURRENT_SEASON),
     sort_by: str = "points"
 ):
     """
     Season Analysis Dashboard
-    Shows player performance analysis for a season with charts and insights
+    Shows player performance analysis for a season (or all seasons) with charts and insights
     """
-    # Create session for this season
-    engine = get_engine(season)
-    session = Session(engine)
-    
-    try:
-        # Get season overview
-        season_overview = AnalysisService.get_season_overview(session, season)
-        
-        # Get top performers with metrics
-        players_data = AnalysisService.get_top_performers(session, season, limit=20)
-        
-        # Sort based on query parameter
-        sort_options = {
-            'points': lambda x: x['points'],
-            'ppg': lambda x: x['ppg'],
-            'goals': lambda x: x['goals'],
-            'assists': lambda x: x['assists'],
-            'games': lambda x: x['games_played'],
+    # Handle "all" seasons
+    if season.lower() == "all" or season == "0":
+        # Aggregate data from all seasons
+        all_players = {}
+        all_overview = {
+            'player_count': 0,
+            'total_goals': 0,
+            'total_assists': 0,
+            'total_points': 0,
+            'total_pim': 0,
+            'avg_ppg': 0.0
         }
+        total_points_sum = 0
+        total_games = 0
         
-        if sort_by in sort_options:
-            players_data = sorted(players_data, key=sort_options[sort_by], reverse=True)
+        sessions = {s: Session(get_engine(s)) for s in AVAILABLE_SEASONS}
         
-        # Prepare data for charts (JSON for JavaScript)
-        chart_data = {
-            'names': [p['name'] for p in players_data],
-            'points': [p['points'] for p in players_data],
-            'goals': [p['goals'] for p in players_data],
-            'assists': [p['assists'] for p in players_data],
-            'ppg': [p['ppg'] for p in players_data],
-        }
-        chart_data_json = json.dumps(chart_data)
+        try:
+            for season_num, session in sessions.items():
+                season_overview = AnalysisService.get_season_overview(session, season_num)
+                players_data = AnalysisService.get_top_performers(session, season_num, limit=100)
+                
+                # Aggregate stats
+                all_overview['player_count'] += season_overview.get('player_count', 0)
+                all_overview['total_goals'] += season_overview.get('total_goals', 0)
+                all_overview['total_assists'] += season_overview.get('total_assists', 0)
+                all_overview['total_points'] += season_overview.get('total_points', 0)
+                all_overview['total_pim'] += season_overview.get('total_pim', 0)
+                
+                for p in players_data:
+                    name = p['name']
+                    if name not in all_players:
+                        all_players[name] = {
+                            'name': name,
+                            'position': p.get('position', '-'),
+                            'goals': 0,
+                            'assists': 0,
+                            'points': 0,
+                            'games_played': 0,
+                            'ppg': 0.0
+                        }
+                    all_players[name]['goals'] += p.get('goals', 0)
+                    all_players[name]['assists'] += p.get('assists', 0)
+                    all_players[name]['points'] += p.get('points', 0)
+                    all_players[name]['games_played'] += p.get('games_played', 0)
+                    total_points_sum += p.get('points', 0)
+                    total_games += p.get('games_played', 0)
+                
+                session.close()
+            
+            # Calculate PPG for aggregated players
+            players_data = list(all_players.values())
+            for p in players_data:
+                if p['games_played'] > 0:
+                    p['ppg'] = round(p['points'] / p['games_played'], 2)
+            
+            # Calculate average PPG
+            if total_games > 0:
+                all_overview['avg_ppg'] = round(total_points_sum / total_games, 2)
+            
+            # Sort based on query parameter
+            sort_options = {
+                'points': lambda x: x['points'],
+                'ppg': lambda x: x['ppg'],
+                'goals': lambda x: x['goals'],
+                'assists': lambda x: x['assists'],
+                'games': lambda x: x['games_played'],
+            }
+            
+            if sort_by in sort_options:
+                players_data = sorted(players_data, key=sort_options[sort_by], reverse=True)
+            
+            players_data = players_data[:20]  # Top 20
+            
+            # Prepare data for charts
+            chart_data = {
+                'names': [p['name'] for p in players_data],
+                'points': [p['points'] for p in players_data],
+                'goals': [p['goals'] for p in players_data],
+                'assists': [p['assists'] for p in players_data],
+                'ppg': [p['ppg'] for p in players_data],
+            }
+            chart_data_json = json.dumps(chart_data)
+            
+            query_string = """
+-- Aggregated statistics across all seasons
+SELECT 
+    p.name,
+    COUNT(DISTINCT ps.season) as seasons_played,
+    SUM(ps.games_played) as total_games,
+    SUM(ps.goals) as total_goals,
+    SUM(ps.assists) as total_assists,
+    SUM(ps.points) as total_points,
+    ROUND(CAST(SUM(ps.points) AS FLOAT) / SUM(ps.games_played), 2) as career_ppg
+FROM players p
+JOIN player_stats ps ON p.id = ps.player_id
+GROUP BY p.name
+ORDER BY SUM(ps.points) DESC
+LIMIT 20;
+            """.strip()
+            
+            context = {
+                'request': request,
+                'title': 'All Seasons Analysis Dashboard',
+                'season': 'all',
+                'current_season': 'all',
+                'season_label': 'Career Stats (All 10 Seasons)',
+                'available_seasons': AVAILABLE_SEASONS,
+                'season_overview': all_overview,
+                'players': players_data,
+                'chart_data_json': chart_data_json,
+                'current_sort': sort_by,
+                'query_string': query_string,
+            }
+            
+            return render_template("predict.html", context)
+        finally:
+            for s in sessions.values():
+                try:
+                    s.close()
+                except:
+                    pass
+    else:
+        # Single season mode
+        try:
+            season_num = int(season)
+        except (ValueError, TypeError):
+            season_num = CURRENT_SEASON
         
-        query_string = f"""
+        if season_num not in AVAILABLE_SEASONS:
+            season_num = CURRENT_SEASON
+        
+        engine = get_engine(season_num)
+        session = Session(engine)
+        
+        try:
+            # Get season overview
+            season_overview = AnalysisService.get_season_overview(session, season_num)
+            
+            # Get top performers with metrics
+            players_data = AnalysisService.get_top_performers(session, season_num, limit=20)
+            
+            # Sort based on query parameter
+            sort_options = {
+                'points': lambda x: x['points'],
+                'ppg': lambda x: x['ppg'],
+                'goals': lambda x: x['goals'],
+                'assists': lambda x: x['assists'],
+                'games': lambda x: x['games_played'],
+            }
+            
+            if sort_by in sort_options:
+                players_data = sorted(players_data, key=sort_options[sort_by], reverse=True)
+            
+            # Prepare data for charts (JSON for JavaScript)
+            chart_data = {
+                'names': [p['name'] for p in players_data],
+                'points': [p['points'] for p in players_data],
+                'goals': [p['goals'] for p in players_data],
+                'assists': [p['assists'] for p in players_data],
+                'ppg': [p['ppg'] for p in players_data],
+            }
+            chart_data_json = json.dumps(chart_data)
+            
+            query_string = f"""
 SELECT 
     p.id,
     p.name,
@@ -372,53 +636,56 @@ SELECT
     ROUND(CAST(ps.points AS FLOAT) / ps.games_played, 2) as ppg
 FROM players p
 JOIN player_stats ps ON p.id = ps.player_id
-WHERE ps.season = {season}
+WHERE ps.season = {season_num}
 ORDER BY ps.points DESC
 LIMIT 20;
-        """.strip()
-        
-        # Determine if season is completed
-        is_completed = is_season_completed(season)
-        season_label = f"{season}-{season+1} (Completed)" if is_completed else f"{season}-{season+1} (Current)"
-        
-        context = {
-            'request': request,
-            'title': f'Season {season} Analysis Dashboard',
-            'season': season,
-            'current_season': season,
-            'season_label': season_label,
-            'available_seasons': AVAILABLE_SEASONS,
-            'season_overview': season_overview,
-            'players': players_data,
-            'chart_data_json': chart_data_json,
-            'current_sort': sort_by,
-            'query_string': query_string,
-        }
-        
-        return render_template("predict.html", context)
-    finally:
-        session.close()
+            """.strip()
+            
+            # Determine if season is completed
+            is_completed = is_season_completed(season_num)
+            season_label = f"{season_num}-{season_num+1} (Completed)" if is_completed else f"{season_num}-{season_num+1} (Current)"
+            
+            context = {
+                'request': request,
+                'title': f'Season {season_num} Analysis Dashboard',
+                'season': season_num,
+                'current_season': season_num,
+                'season_label': season_label,
+                'available_seasons': AVAILABLE_SEASONS,
+                'season_overview': season_overview,
+                'players': players_data,
+                'chart_data_json': chart_data_json,
+                'current_sort': sort_by,
+                'query_string': query_string,
+            }
+            
+            return render_template("predict.html", context)
+        finally:
+            session.close()
 
 # ==================== ABOUT DATA PAGE ====================
 
 @router.get("/about-data", response_class=HTMLResponse)
 async def about_data(
     request: Request,
-    season: int = CURRENT_SEASON
+    season: str = str(CURRENT_SEASON)
 ):
     """
     About data page
     Explains data sources and refresh status
     """
-    # Create session for this season
-    engine = get_engine(season)
-    session = Session(engine)
-    
-    try:
-        # Get data source info
-        refresh_logs = session.query(RefreshLog).order_by(RefreshLog.refresh_time.desc()).limit(5).all()
-    
-        query_string = """
+    # For about-data, we always get logs from current season database
+    # but display info about all seasons
+    if season.lower() == "all" or season == "0":
+        # Get logs from current season database
+        engine = get_engine(CURRENT_SEASON)
+        session = Session(engine)
+        
+        try:
+            refresh_logs = session.query(RefreshLog).order_by(RefreshLog.refresh_time.desc()).limit(5).all()
+            
+            query_string = """
+-- Data refresh logs across all seasons
 SELECT 
     source_url,
     refresh_time,
@@ -428,21 +695,65 @@ SELECT
 FROM refresh_logs
 ORDER BY refresh_time DESC
 LIMIT 10;
-        """.strip()
+            """.strip()
+            
+            context = {
+                'request': request,
+                'title': 'About Our Data - All Seasons',
+                'season': 'all',
+                'current_season': 'all',
+                'available_seasons': AVAILABLE_SEASONS,
+                'refresh_logs': refresh_logs,
+                'query_string': query_string,
+            }
+            
+            return render_template("about_data.html", context)
+        finally:
+            session.close()
+    else:
+        # Single season mode
+        try:
+            season_num = int(season)
+        except (ValueError, TypeError):
+            season_num = CURRENT_SEASON
         
-        context = {
-            'request': request,
-            'title': 'About Our Data',
-            'season': season,
-            'current_season': season,
-            'available_seasons': AVAILABLE_SEASONS,
-            'refresh_logs': refresh_logs,
-            'query_string': query_string,
-        }
+        if season_num not in AVAILABLE_SEASONS:
+            season_num = CURRENT_SEASON
         
-        return render_template("about_data.html", context)
-    finally:
-        session.close()
+        # Create session for this season
+        engine = get_engine(season_num)
+        session = Session(engine)
+        
+        try:
+            # Get data source info
+            refresh_logs = session.query(RefreshLog).order_by(RefreshLog.refresh_time.desc()).limit(5).all()
+        
+            query_string = f"""
+SELECT 
+    source_url,
+    refresh_time,
+    status,
+    record_count,
+    error_message
+FROM refresh_logs
+WHERE season = {season_num}
+ORDER BY refresh_time DESC
+LIMIT 10;
+            """.strip()
+            
+            context = {
+                'request': request,
+                'title': 'About Our Data',
+                'season': season_num,
+                'current_season': season_num,
+                'available_seasons': AVAILABLE_SEASONS,
+                'refresh_logs': refresh_logs,
+                'query_string': query_string,
+            }
+            
+            return render_template("about_data.html", context)
+        finally:
+            session.close()
 
 # ==================== DATA REFRESH ROUTE (LOCAL DEV ONLY) ====================
 

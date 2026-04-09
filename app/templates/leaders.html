@@ -11,6 +11,7 @@
     <div class="filter-section">
         <label for="season-select">Select Season:</label>
         <select id="season-select" onchange="window.location.href='/leaders?season=' + this.value">
+            <option value="all" {% if season == 'all' or season == 0 %}selected{% endif %}>All Seasons</option>
             {% for s in available_seasons %}
             <option value="{{ s }}" {% if s == season %}selected{% endif %}>{{ s }}</option>
             {% endfor %}

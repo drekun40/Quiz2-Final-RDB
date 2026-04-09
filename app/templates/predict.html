@@ -16,6 +16,7 @@
         <div class="season-selector">
             <label for="season-select">Jump to Season:</label>
             <select id="season-select" onchange="window.location.href='/predict?season=' + this.value">
+                <option value="all" {% if season == 'all' or season == 0 %}selected{% endif %}>All Seasons</option>
                 {% for s in available_seasons %}
                 <option value="{{ s }}" {% if s == season %}selected{% endif %}>{{ s }}-{{ s+1 }}</option>
                 {% endfor %}
@@ -190,6 +191,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     const chartData = {{ chart_data_json | safe }};
     
+    // Check if chart data exists and has content
+    if (!chartData || !chartData.names || chartData.names.length === 0) {
+        console.log('No chart data available');
+        document.querySelectorAll('.chart-container').forEach(container => {
+            container.innerHTML = '<p style="color: #999; padding: 2rem; text-align: center;">No data available for this view</p>';
+        });
+        return;
+    }
+    
     // Common chart styling
     const chartDefaults = {
         font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
@@ -199,8 +209,20 @@ document.addEventListener('DOMContentLoaded', function() {
     Chart.defaults.font = chartDefaults.font;
     Chart.defaults.color = chartDefaults.color;
     
+    // Helper function to safely create chart
+    function createChartIfElementExists(elementId, config) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            try {
+                new Chart(element, config);
+            } catch (e) {
+                console.error(`Error creating chart ${elementId}:`, e);
+            }
+        }
+    }
+    
     // Top Scorers Chart
-    new Chart(document.getElementById('topScorersChart'), {
+    createChartIfElementExists('topScorersChart', {
         type: 'bar',
         data: {
             labels: chartData.names.slice(0, 10),
@@ -232,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // PPG Chart
-    new Chart(document.getElementById('ppgChart'), {
+    createChartIfElementExists('ppgChart', {
         type: 'bar',
         data: {
             labels: chartData.names.slice(0, 10),
@@ -264,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Goals vs Assists Chart
-    new Chart(document.getElementById('gaChart'), {
+    createChartIfElementExists('gaChart', {
         type: 'bar',
         data: {
             labels: chartData.names.slice(0, 10),
@@ -295,13 +317,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Games Chart
-    new Chart(document.getElementById('gamesChart'), {
+    createChartIfElementExists('gamesChart', {
         type: 'bar',
         data: {
             labels: chartData.names.slice(0, 10),
             datasets: [{
                 label: 'Games Played',
-                data: chartData.games.slice(0, 10),
+                data: chartData.games ? chartData.games.slice(0, 10) : chartData.points.slice(0, 10),
                 backgroundColor: '#1a3a6b',
                 borderRadius: 6,
                 borderSkipped: false

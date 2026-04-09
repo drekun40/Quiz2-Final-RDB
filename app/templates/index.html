@@ -13,6 +13,7 @@
 <div class="filter-section" style="margin-bottom: 2rem; background-color: #00205B; color: white; border: 2px solid #FFD700;">
     <label for="season-select" style="color: #FFD700; font-weight: 600;">📅 Select Season:</label>
     <select id="season-select" onchange="window.location.href='/?season=' + this.value" style="margin-left: 1rem; padding: 0.4rem; border: 1px solid #FFD700;">
+        <option value="all">All Seasons</option>
         {% for s in available_seasons %}
         <option value="{{ s }}" {% if s == current_season %}selected{% endif %}>{{ s }}-{{ s+1 }}</option>
         {% endfor %}
