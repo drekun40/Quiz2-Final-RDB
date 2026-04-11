@@ -1,189 +1,130 @@
-# Erie Otters OHL Database Project
+# 🏒 Erie Otters Statistics Dashboard
 
-A relational database project tracking Erie Otters (Ontario Hockey League) team statistics and performance from 2000-2025.
+A modern, interactive web application for exploring Erie Otters (Ontario Hockey League) player statistics across 10 seasons (2010-2019).
 
-## Project Overview
+## ✨ Features
 
-This project builds a SQLite database containing:
-- **Teams**: Erie Otters and opponent information
-- **Players**: Roster data across seasons (2000-2025)
-- **Games**: Game-by-game statistics and results
-- **Stats**: Individual player and team performance metrics
-- **Seasons**: Annual season summaries and achievements
+- **🎯 Interactive Dashboard** - Real-time charts and statistics
+- **📊 4 Auto-Updating Charts** - Points, PPG, Goals vs Assists, Games Played
+- **📅 Multi-Season Support** - View individual seasons or career stats across all 10 years
+- **🔍 Player Search & Filtering** - Find players by name or position
+- **📈 Career Analysis** - Track player development across seasons
+- **💾 Pre-Populated Data** - 172 unique player records ready to go
+- **🎓 Educational** - SQL queries visible on every page
 
-## Features
+## 🚀 Quick Start
 
-- SQLite relational database with normalized schema
-- Python data pipeline for CSV ingestion
-- FastAPI web interface for querying
-- Statistical analysis and visualizations
-- Machine learning predictions (game outcomes, player performance)
+See [SETUP_INSTRUCTIONS.md](SETUP_INSTRUCTIONS.md) for detailed setup steps.
 
-## Project Structure
-
-```
-├── README.md                      # This file
-├── requirements.txt               # Python dependencies
-├── models.py                      # SQLModel database schemas
-├── db.py                          # Database initialization & utilities
-├── db_optimized.py                # Optimized database operations
-├── main.py                        # FastAPI web application
-├── train.py                       # ML model training
-├── predict.py                     # ML predictions
-├── data/                          # Data files
-│   ├── erie_otters_stats.csv
-│   ├── games_data.csv
-│   └── player_stats.csv
-├── static/                        # Web UI assets
-│   ├── index.html
-│   └── style.css
-└── models/                        # Saved ML models
-    └── predictions.pth
-```
-
-## Getting Started
-
-### Prerequisites
-- Python 3.8+
-- SQLite3
-- pip
-
-### Installation
-
+**TL;DR:**
 ```bash
-# Clone the repository
 git clone https://github.com/drekun40/Quiz2-Final-RDB.git
 cd Quiz2-Final-RDB
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-
-# Initialize and populate database
-python load_data.py
-```
-
-### Running the Application
-
-#### Option 1: Using the start script
-```bash
 python server.py
+# Open http://localhost:8000
 ```
 
-#### Option 2: Direct uvicorn
+## 📱 Available Pages
+
+| Page | URL | Description |
+|------|-----|-------------|
+| **Home** | `/` | Season overview and quick stats |
+| **Players** | `/players` | Browsable roster with search |
+| **Leaders** | `/leaders` | Top scorers and performers |
+| **Projections** | `/predict` | Season dashboard with charts |
+| **Data Info** | `/about-data` | Data sources and tracking |
+
+## 🗂️ Database Contents
+
+✅ **All 10 Seasons Included (2010-2019)**
+- Season 2010: 15 players
+- Season 2011: 15 players
+- Season 2012: 16 players
+- ...
+- Season 2019: 20 players
+- **Total: 172 unique player records with 0 duplicates**
+
+Each season database includes:
+- Player rosters
+- Goals, assists, points
+- Games played
+- Penalty minutes
+- PPG (Points Per Game)
+
+## 🛠️ Technology Stack
+
+- **Backend**: FastAPI + SQLModel
+- **Frontend**: Jinja2 templates + Chart.js
+- **Database**: SQLite (local, no external server)
+- **Language**: Python 3.8+
+
+## 📊 Dashboard Features
+
+### Charts Available
+1. **Top 10 Scorers - Points Comparison** - Horizontal bar chart
+2. **Points Per Game Leaders** - PPG rankings
+3. **Top Scorers - Goals vs Assists** - Stacked comparison
+4. **Games Played Distribution** - Game frequency analysis
+
+### Season Options
+- Individual years (2010-2019)
+- **All Seasons** - Aggregate career statistics
+- Automatic averages and totals calculation
+
+## 🔧 Requirements
+
+- Python 3.8+
+- pip package manager
+- ~50MB disk space (databases included)
+
+## 📋 Project Structure
+
+```
+├── app/                          # FastAPI application
+│   ├── main.py                  # Server setup
+│   ├── database.py              # Database config
+│   ├── models.py                # SQLModel schemas
+│   ├── routers/                 # URL route handlers
+│   ├── services/                # Business logic
+│   ├── templates/               # HTML templates
+│   └── static/                  # CSS and assets
+├── erie_otters_2010.db          # Season databases (included)
+├── erie_otters_2011.db
+│   ... (through 2019)
+├── server.py                    # Application entry point
+└── requirements.txt             # Python dependencies
+```
+
+## 💡 Key Updates
+
+### Version 2.0 (Latest)
+- ✅ Fixed chart rendering (4 interactive charts)
+- ✅ Added "All Seasons" aggregation
+- ✅ Databases now included (no setup needed)
+- ✅ Clean, deduped data (0 duplicates)
+- ✅ Cross-season career stats
+- ✅ Responsive design
+
+## 🐛 Troubleshooting
+
+**No data visible?**
+- Ensure all `erie_otters_*.db` files are in the project root
+- Check Python virtual environment is activated
+- Try: `python server.py` to see startup messages
+
+**Port 8000 in use?**
 ```bash
-uvicorn main:app --reload --host localhost --port 8000
+pkill -f "python server.py"
 ```
 
-The API will be available at:
-- **API**: http://localhost:8000
-- **Interactive Docs (Swagger)**: http://localhost:8000/docs
-- **Alternative Docs (ReDoc)**: http://localhost:8000/redoc
+## 📞 Support
 
-#### Test the API
+1. Check [SETUP_INSTRUCTIONS.md](SETUP_INSTRUCTIONS.md)
+2. Review database structure in `app/models.py`
+3. Check GitHub issues for known problems
 
-```bash
-# Get all players
-curl http://localhost:8000/players
+---
 
-# Get top scorers for 2025
-curl http://localhost:8000/stats/top-scorers/2025
-
-# Get team statistics
-curl http://localhost:8000/stats/team-record/2025
-```
-
-## Data Sources
-
-The project includes a multi-season scraper that can extract data from all 25 seasons (2000-2025):
-
-### Using the Scraper
-
-The scraper is configured to scrape from these URLs:
-- Season 1-25: `https://chl.ca/ohl-otters/stats/players/{season_number}/`
-- Maps to years 2000-2026
-
-**Run the scraper:**
-```bash
-python scraper.py
-```
-
-This will:
-- Scrape specified seasons (currently testing seasons 24-26)
-- Save data to `data/erie_otters_all_seasons.csv`
-- Save JSON backup to `data/erie_otters_all_seasons.json`
-
-**To scrape all 25 seasons**, modify `scraper.py`:
-```python
-# Change this line in __main__:
-test_seasons = [26, 25, 24]  # Current: recent seasons only
-
-# To this:
-test_seasons = list(range(1, 27))  # All 26 seasons (2000-2026)
-```
-
-**Note:** The website may enforce rate limiting. If blocked, requests will return 403.
-
-### Current Data (2025-2026)
-
-- Real Erie Otters roster with 30 players
-- Complete season statistics
-- Player stats: games played, goals, assists, points, +/-, PIM
-- Team stats: wins, losses, OT losses, goals for/against, power play %
-
-## Database Schema
-
-### Teams
-- team_id (PK)
-- name
-- founded_year
-- city
-- league
-
-### Players
-- player_id (PK)
-- first_name
-- last_name
-- birth_year
-- position
-- draft_year
-
-### Games
-- game_id (PK)
-- season
-- game_date
-- home_team
-- away_team
-- home_score
-- away_score
-
-### PlayerStats
-- stat_id (PK)
-- player_id (FK)
-- season
-- games_played
-- goals
-- assists
-- points
-- +/-
-
-### TeamStats
-- stat_id (PK)
-- team_id (FK)
-- season
-- wins
-- losses
-- ot_losses
-- goals_for
-- goals_against
-
-## License
-
-Your Name (Year)
-
-## Author
-
-Created as a Final Project in Relational Database Course
+**Ready to get started?** → [SETUP_INSTRUCTIONS.md](SETUP_INSTRUCTIONS.md)
