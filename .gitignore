@@ -37,8 +37,8 @@ env/
 *~
 .DS_Store
 
-# Database
-*.db
+# Database (but allow erie_otters databases for production data)
+# *.db
 *.sqlite
 *.sqlite3
 
